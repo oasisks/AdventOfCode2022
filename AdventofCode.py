@@ -361,6 +361,40 @@ def day7(file):
     return sum_of_directories, min(possible_deletion)
 
 
+def day8(file):
+    grid = []
+    total = 0
+
+    def is_valid_coord(row, col, max_row, max_col):
+        return 0 <= row <= max_row and 0 <= col <= max_col
+
+    for line in file:
+        line = [int(height) for height in line.strip("\n")]
+        grid.append(line)
+
+    total += len(grid[0]) + len(grid[-1])
+    total += sum([2 for row in grid[1: -1]])
+    cardinal_directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+
+    # now we only have the internal layer of grids
+    for row in range(1, len(grid) - 1):
+        for col in range(1, len(grid[row]) - 1):
+            height = grid[row][col]
+
+            for cardinal_direction in cardinal_directions:
+                dr, dc = cardinal_direction
+                nr, nc = row + dr, col + dc
+
+                if is_valid_coord(nr, nc, len(grid), len(grid[row])):
+                    # this means that it is visible
+                    if height > grid[nr][nc]:
+                        print(height, grid[nr][nc])
+                        total += 1
+                        break
+
+    return total
+
+
 if __name__ == '__main__':
     file = open("input.txt", "r", encoding="utf-8")
     # print(day1(file))
@@ -369,4 +403,5 @@ if __name__ == '__main__':
     # print(day4(file))
     # print(day5(file))
     # print(day6(file))
-    print(day7(file))
+    # print(day7(file))
+    print(day8(file))
