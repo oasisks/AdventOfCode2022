@@ -362,37 +362,105 @@ def day7(file):
 
 
 def day8(file):
-    grid = []
-    total = 0
+    def next_great_value(iterable: list):
+        """
+        Returns a list of indices that points to the next great value
+        NOTE: This is a variation. Values of the same will be considered as the next great value (i.e. [5, 5] = [1, -1])
+        input: [1, 3, 2, 5, 6, 21]
+        output: [1, 3, 3, 4, 5, -1] -> [3, 5, 5, 6, 21, -1]
+        :param iterable: a list of values
+        :return: list of indices
+        """
 
-    def is_valid_coord(row, col, max_row, max_col):
-        return 0 <= row <= max_row and 0 <= col <= max_col
+        # pops the first element from the list
+        stack = []
+        indices = [0] * len(iterable)
 
-    for line in file:
-        line = [int(height) for height in line.strip("\n")]
-        grid.append(line)
+        for index, elt in enumerate(iterable):
+            # if the stack is empty just push the element and move on
+            data = elt, index
 
-    total += len(grid[0]) + len(grid[-1])
-    total += sum([2 for row in grid[1: -1]])
-    cardinal_directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+            if not stack:
+                stack.append(data)
+                continue
+            if elt < stack[-1][0]:
+                stack.append(data)
+                continue
+            while stack and elt >= stack[-1][0]:
+                indices[stack.pop()[1]] = index
 
-    # now we only have the internal layer of grids
-    for row in range(1, len(grid) - 1):
-        for col in range(1, len(grid[row]) - 1):
-            height = grid[row][col]
+            stack.append(data)
 
-            for cardinal_direction in cardinal_directions:
-                dr, dc = cardinal_direction
-                nr, nc = row + dr, col + dc
+        # the remaining elements in the stack will have no greater element
+        while stack:
+            indices[stack.pop()[1]] = -1
 
-                if is_valid_coord(nr, nc, len(grid), len(grid[row])):
-                    # this means that it is visible
-                    if height > grid[nr][nc]:
-                        print(height, grid[nr][nc])
-                        total += 1
-                        break
+        return indices
 
-    return total
+    def count_visible_trees(grid):
+        """
+        Returns a count of all visible trees
+        :param grid: list[list]
+        :return: int
+        """
+        total_visible_trees = 0
+        for row in grid:
+            for col in row:
+                if col:
+                    total_visible_trees += 1
+
+        return total_visible_trees
+
+    def update_grid(grid, visibility, col=None, row=None, horizontal=False):
+        """
+        Sets a tree to be true if the tree is visible
+        :param visibility: list
+        :param grid: list[list]
+        :param col: int
+        :param row: int
+        :param horizontal: bool
+        :return: int
+        """
+        if horizontal and row is not None:
+            for index, tree in enumerate(visibility):
+                # there is no tree bigger than the current tree when looking at the east
+                if tree == -1:
+                    grid[row][index] = True
+        elif not horizontal and col is not None:
+            for index, tree in enumerate(visibility):
+                # there is no tree bigger than the current tree when looking at the south
+                if tree == -1:
+                    grid[index][col] = True
+
+        return -1
+
+    lines = [[int(num) for num in line.strip("\n")] for line in file.readlines()]
+
+    grid = [[False for elt in line] for line in lines]
+
+    # this is checking the rows
+    for row in range(len(lines)):
+        trees = lines[row]
+        left_to_right = next_great_value(trees)
+        right_to_left = next_great_value(trees[::-1])
+
+        # this updates the grid
+        update_grid(grid, left_to_right, horizontal=True, row=row)
+        update_grid(grid, right_to_left[::-1], horizontal=True, row=row)
+
+    # this is checking the columns
+    for col in range(len(lines)):
+        column = []
+        for row in range(len(lines)):
+            column.append(lines[row][col])
+
+        top_to_bottom = next_great_value(column)
+        bottom_to_top = next_great_value(column[::-1])
+
+        update_grid(grid, top_to_bottom, col=col)
+        update_grid(grid, bottom_to_top[::-1], col=col)
+
+    return count_visible_trees(grid)
 
 
 if __name__ == '__main__':
