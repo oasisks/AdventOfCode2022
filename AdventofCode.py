@@ -419,24 +419,77 @@ def day8(file):
         :param col: int
         :param row: int
         :param horizontal: bool
-        :return: int
+        :return: None
         """
         if horizontal and row is not None:
             for index, tree in enumerate(visibility):
-                # there is no tree bigger than the current tree when looking at the east
+                # there is no tree bigger than the current tree when looking horizontally
                 if tree == -1:
                     grid[row][index] = True
         elif not horizontal and col is not None:
             for index, tree in enumerate(visibility):
-                # there is no tree bigger than the current tree when looking at the south
+                # there is no tree bigger than the current tree when looking vertically
                 if tree == -1:
                     grid[index][col] = True
 
-        return -1
+    def find_highest_scenic_score(grid):
+        """
+        Finds the highest scenic score given a grid of scenic scores
+        :param grid: list[list]
+        :return: int
+        """
+
+        highest_score = None
+        for row in grid:
+            for col in row:
+                if highest_score is None:
+                    highest_score = col
+                    continue
+                if col > highest_score:
+                    highest_score = col
+
+        return highest_score
+
+    def update_grid_scenic_score(grid, visibility, row=None, col=None, horizontal=True):
+        """
+        This updates the grid from left_to_right and top_to_bottom
+        :param grid: list[list]
+        :param visibility: list
+        :param row: int
+        :param col: int
+        :param horizontal: bool
+        :return: None
+        """
+        for index, tree in enumerate(visibility):
+            if horizontal:
+                if tree != -1:
+                    grid[row][index] *= tree - index
+                else:
+                    grid[row][index] *= len(left_to_right) - 1 - index
+            else:
+                if tree != -1:
+                    grid2[index][col] *= tree - index
+                else:
+                    grid2[index][col] *= len(top_to_bottom) - 1 - index
+
+    def update_grid_scenic_score_reverse(grid, visibility, row=None, col=None, horizontal=True):
+        for index, tree in enumerate(visibility[::-1]):
+            new_index = len(visibility) - 1 - tree
+            if horizontal:
+                if tree != -1:
+                    grid[row][index] *= abs(index - new_index)
+                else:
+                    grid[row][index] *= index
+            else:
+                if tree != -1:
+                    grid[index][col] *= abs(index - new_index)
+                else:
+                    grid[index][col] *= index
 
     lines = [[int(num) for num in line.strip("\n")] for line in file.readlines()]
 
-    grid = [[False for elt in line] for line in lines]
+    grid1 = [[False for elt in line] for line in lines]  # part 1
+    grid2 = [[1 for elt in line] for line in lines]  # part 2
 
     # this is checking the rows
     for row in range(len(lines)):
@@ -445,8 +498,12 @@ def day8(file):
         right_to_left = next_great_value(trees[::-1])
 
         # this updates the grid
-        update_grid(grid, left_to_right, horizontal=True, row=row)
-        update_grid(grid, right_to_left[::-1], horizontal=True, row=row)
+        update_grid(grid1, left_to_right, horizontal=True, row=row)
+        update_grid(grid1, right_to_left[::-1], horizontal=True, row=row)
+
+        # this is part 2
+        update_grid_scenic_score(grid2, left_to_right, row=row, horizontal=True)
+        update_grid_scenic_score_reverse(grid2, right_to_left, row=row, horizontal=True)
 
     # this is checking the columns
     for col in range(len(lines)):
@@ -457,10 +514,14 @@ def day8(file):
         top_to_bottom = next_great_value(column)
         bottom_to_top = next_great_value(column[::-1])
 
-        update_grid(grid, top_to_bottom, col=col)
-        update_grid(grid, bottom_to_top[::-1], col=col)
+        update_grid(grid1, top_to_bottom, col=col)
+        update_grid(grid1, bottom_to_top[::-1], col=col)
 
-    return count_visible_trees(grid)
+        # this is part 2
+        update_grid_scenic_score(grid2, top_to_bottom, col=col, horizontal=False)
+        update_grid_scenic_score_reverse(grid2, bottom_to_top, col=col, horizontal=False)
+
+    return count_visible_trees(grid1), find_highest_scenic_score(grid2)
 
 
 if __name__ == '__main__':
