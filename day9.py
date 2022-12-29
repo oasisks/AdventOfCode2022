@@ -21,15 +21,17 @@ def day9(file):
 
             return self.x, self.y
 
-        def move(self, vector: list[bool]):
+        def move(self, vector: tuple[int, int]):
             """
             Updates the current position of the knot
             :return: None
             """
             self.x += vector[0]
             self.y += vector[1]
-            print(self.x, self.y)
             self.visited.add((self.x, self.y))
+
+        def get_visited_length(self):
+            return len(self.visited)
 
     class Tail(Knot):
         def __init__(self):
@@ -41,6 +43,31 @@ def day9(file):
             :param head: Knot
             :return: None
             """
+
+            # the tail will only move, if the head is two steps ahead
+            x_diff = head.x - self.x
+            y_diff = head.y - self.y
+
+            if abs(x_diff) == 2:
+                x_displacement = int(x_diff / 2)
+
+                # this is a diagonal
+                if abs(y_diff) == 1:
+                    self.x += x_displacement
+                    self.y += y_diff
+                else:
+                    self.x += x_displacement
+            elif abs(y_diff) >= 2:
+                y_displacement = int(y_diff / 2)
+
+                # this is a diagonal
+                if abs(x_diff) == 1:
+                    self.x += x_diff
+                    self.y += y_displacement
+                else:
+                    self.y += int(y_diff / 2)
+
+            self.visited.add(self.get_position())
 
     class Rope:
         def __init__(self):
@@ -67,7 +94,7 @@ def day9(file):
         direction, unit = line.strip("\n").split(" ")
         rope.update(direction, int(unit))
 
-    print(rope.head.get_position())
+    return rope.tail.get_visited_length()
 
 
 if __name__ == '__main__':
