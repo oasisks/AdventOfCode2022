@@ -33,13 +33,16 @@ def day9(file):
         def get_visited_length(self):
             return len(self.visited)
 
+        def __repr__(self):
+            return f"{self.x}, {self.y}"
+
     class Tail(Knot):
         def __init__(self):
             super(Tail, self).__init__()
 
         def move(self, head: Knot):
             """
-            The tail will move base on the position of the head
+            The tail will move base on the position of the knot in front of it
             :param head: Knot
             :return: None
             """
@@ -48,24 +51,10 @@ def day9(file):
             x_diff = head.x - self.x
             y_diff = head.y - self.y
 
-            if abs(x_diff) == 2:
-                x_displacement = int(x_diff / 2)
-
-                # this is a diagonal
-                if abs(y_diff) == 1:
-                    self.x += x_displacement
-                    self.y += y_diff
-                else:
-                    self.x += x_displacement
-            elif abs(y_diff) >= 2:
-                y_displacement = int(y_diff / 2)
-
-                # this is a diagonal
-                if abs(x_diff) == 1:
-                    self.x += x_diff
-                    self.y += y_displacement
-                else:
-                    self.y += int(y_diff / 2)
+            # if at least one of them has a distance of two away
+            if max(abs(x_diff), abs(y_diff)) > 1:
+                self.x += x_diff // abs(x_diff) if x_diff else 0
+                self.y += y_diff // abs(y_diff) if y_diff else 0
 
             self.visited.add(self.get_position())
 
@@ -75,7 +64,8 @@ def day9(file):
             This will be place that simulates the rope
             """
             self.head = Knot()
-            self.tail = Tail()
+            # self.tail = Tail()  # part 1
+            self.tail = [Tail() for i in range(9)]
 
         def update(self, direction, unit):
             """
@@ -87,14 +77,22 @@ def day9(file):
             # this simulates frames
             for step in range(unit):
                 self.head.move(cardinal_vectors[direction])
-                self.tail.move(self.head)  # the tail will be updated each frame along with the head
+                # this is part 1
+                # self.tail.move(self.head)  # the tail will be updated each frame along with the head
+
+                # this is part 2
+                front = self.head
+                for index, tail in enumerate(self.tail):
+                    tail.move(front)
+                    front = tail
 
     rope = Rope()
     for line in file:
         direction, unit = line.strip("\n").split(" ")
         rope.update(direction, int(unit))
 
-    return rope.tail.get_visited_length()
+    # return rope.tail.get_visited_length()  ## Part 1
+    return len(rope.tail[-1].visited)
 
 
 if __name__ == '__main__':
