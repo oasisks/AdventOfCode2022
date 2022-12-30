@@ -29,7 +29,7 @@ def day11(file):
         def receive_item(self, item):
             self.starting_items.append(item)
 
-        def inspect_items(self, monkeys: dict[int]):
+        def inspect_items(self, monkeys: dict[int], super_mod):
             """
             The function that simulates how a monkey will inspect all elements
             :return:
@@ -46,7 +46,8 @@ def day11(file):
                 else:
                     new_worry_level = term1 * term2
 
-                new_worry_level //= 3
+                new_worry_level %= super_mod
+                # new_worry_level //= 3  # this is for part 1
                 if new_worry_level % self.tests == 0:
                     # we do the true
                     self.throw_item(new_worry_level, monkeys[self.true])
@@ -65,6 +66,7 @@ def day11(file):
             This will be used to simulate the monkey rounds
             """
             self.monkeys = {}
+            self.super_mod = 1
 
         def add_monkey(self, stats):
             """
@@ -85,9 +87,12 @@ def day11(file):
             Simulates the round
             :return:
             """
-            for _ in range(20):
+            for monkey in self.monkeys.values():
+                self.super_mod *= monkey.tests
+
+            for _ in range(10000):
                 for monkey in self.monkeys:
-                    self.monkeys[monkey].inspect_items(self.monkeys)
+                    self.monkeys[monkey].inspect_items(self.monkeys, self.super_mod)
 
         def top_two_annoying_monkey_scores(self):
             """
