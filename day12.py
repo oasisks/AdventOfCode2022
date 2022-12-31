@@ -68,19 +68,25 @@ def day12(file):
                     to_be_visited.append((*cell, neighbor))
                     visited.add(neighbor)
 
+        return ()
+
     lines = file.readlines()
     max_row = len(lines)
     max_col = len(lines[0]) - 1  # account for the /n
     destination = None
     source = None
+    sources = []
 
     # graph generation
     for row, line in enumerate(lines):
         line = line.strip("\n")
         for col, current_cell in enumerate(line):
             children = []
-            if current_cell == "S":
-                source = current_cell, (row, col)
+            if current_cell == "S" or current_cell == "a":
+                sources.append((current_cell, (row, col)))
+                # this is to maintain part 1
+                if current_cell == "S":
+                    source = current_cell, (row, col)
             if current_cell == "E":
                 destination = current_cell, (row, col)
 
@@ -96,7 +102,15 @@ def day12(file):
             # add the edges to the graph
             graph[(current_cell, (row, col))] = children
 
-    return len(bfs(graph, source, destination)) - 1  # we are subtracting for over counting the source
+    # we are subtracting for over counting the source
+    min_distance = float('inf')
+    for potential_sources in sources:
+        path = bfs(graph, potential_sources, destination)
+        if path:
+            if len(path) - 1 < min_distance:
+                min_distance = len(path) - 1
+
+    return len(bfs(graph, source, destination)) - 1, min_distance
 
 
 if __name__ == '__main__':
