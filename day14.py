@@ -49,9 +49,6 @@ class Cave:
         Generate the bedrock
         :return: None
         """
-        print(self.max_x, self.max_y)
-        print(self.min_x, self.min_y)
-
         for x in range(self.max_y + 1 + 2):
             left = 500 - x, self.max_y + 2
             right = 500 + x, self.max_y + 2
@@ -174,10 +171,8 @@ def day14(file):
             ending_pos = [int(x) for x in line[_].split(",")]
             cave.add_rocks(starting_pos, ending_pos)
 
-    cave.generate_bedrock()
-    print(cave.rocks)
+    cave.generate_bedrock()  # this is part 2
     cave.simulation()
-    print(cave)
 
     return len(cave)
 
