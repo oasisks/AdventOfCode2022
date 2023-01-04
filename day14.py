@@ -1,10 +1,23 @@
 from __future__ import annotations
 
+import time
+
 
 class Cave:
     def __init__(self):
         """
         This will represent the cave
+
+        NOTE: we can take advantage of the way the sand is being generated
+        ________________________________
+        The general pattern of the sand is that it will ultimately result in a triangle
+        We can calculate the theoretical length of the bedrock given the height of the grid
+
+        For example,
+        self.max_y = 4
+        then the length of the bedrock will be 4 * 2 + 1 = 9
+        or the bedrock will spam from (-4, 6) -> (4, 6)
+        ________________________________
         """
         self.rocks = set()
         self.sands = set()
@@ -31,6 +44,27 @@ class Cave:
                 self._update_boundaries(x, y)
                 self.rocks.add(rock)
 
+    def generate_bedrock(self):
+        """
+        Generate the bedrock
+        :return: None
+        """
+        print(self.max_x, self.max_y)
+        print(self.min_x, self.min_y)
+
+        for x in range(self.max_y + 1 + 2):
+            left = 500 - x, self.max_y + 2
+            right = 500 + x, self.max_y + 2
+
+            if left[0] < self.min_x:
+                self.min_x = left[0]
+
+            if right[0] > self.max_x:
+                self.max_x = right[0]
+
+            self.rocks.add(left)
+            self.rocks.add(right)
+
     def simulation(self):
         """
         Just simulates the sands dropping
@@ -38,6 +72,8 @@ class Cave:
         """
         while self._simulate_sand():
             print(self)
+            time.sleep(0.4)
+            pass
 
     def _simulate_sand(self) -> bool:
         """
@@ -48,11 +84,10 @@ class Cave:
         # attempt to simulate the sand going down
         # part 1
         while True:
-            if self.falling_into_endless_void(sand):
-                return False
+            # if self.falling_into_endless_void(sand):
+            #     return False
             potential_sand = sand[0], sand[1] + 1
-            # time.sleep(0.05)
-            if potential_sand in self.rocks or potential_sand in self.sands or potential_sand[1] == self.max_y + 2:
+            if potential_sand in self.rocks or potential_sand in self.sands:
                 # check the left and right diagonal cells
                 left = potential_sand[0] - 1, potential_sand[1]
                 right = potential_sand[0] + 1, potential_sand[1]
@@ -67,6 +102,9 @@ class Cave:
 
                 # at this point the sand has to be at rest
                 self.sands.add(sand)
+                # this is for part 2
+                if sand == (500, 0):
+                    return False
                 return True
 
             sand = potential_sand
@@ -101,7 +139,7 @@ class Cave:
         :return:
         """
         representation = ""
-        for y in range(self.min_y, self.max_y + 1):
+        for y in range(self.min_y, self.max_y + 1 + 2):
             for x in range(self.min_x, self.max_x + 1):
                 coord = x, y
                 # location where the sand drops
@@ -136,7 +174,10 @@ def day14(file):
             ending_pos = [int(x) for x in line[_].split(",")]
             cave.add_rocks(starting_pos, ending_pos)
 
+    cave.generate_bedrock()
+    print(cave.rocks)
     cave.simulation()
+    print(cave)
 
     return len(cave)
 
